@@ -8,11 +8,11 @@ import neopixel # pyright: ignore[reportMissingImports]
 have_hardware = False
 
 # Stub classes for graceful fallback
-class LedStub:
+class led_stub:
     def __init__(self):
         self.value = False
 
-class PixelStub:
+class pixel_stub:
     def __init__(self, n):
         self._n = n
         self.data = [(0, 0, 0)] * n
@@ -27,7 +27,7 @@ class PixelStub:
     def __len__(self):
         return self._n
 
-class ButtonStub:
+class button_stub:
     def __init__(self):
         self.value = True
 
@@ -43,18 +43,18 @@ def init_hardware():
         # CircuitPython boards have these by default
         global have_hardware
         have_hardware = True
-        print("Successfully imported hardware libraries")
+        print("o Successfully imported hardware libraries")
     except ImportError as e:
-        print(f"Import error: {e}")
-        print("Failed to import hardware libraries - running in stub mode")
-        return LedStub(), ButtonStub(), PixelStub(1), PixelStub(32), None
-
+        print(f"o Import error: {e}")
+        print("o Failed to import hardware libraries - running in stub mode")
+        return led_stub(), button_stub(), pixel_stub(1), pixel_stub(32), None
+    
     # LED init
     try:
         led = digitalio.DigitalInOut(board.LED)
         led.direction = digitalio.Direction.OUTPUT
     except Exception:
-        led = LedStub()
+        led = led_stub()
 
     # Single NeoPixel
     try:
@@ -64,10 +64,30 @@ def init_hardware():
             print("Single NeoPixel initialized on", np_pin)
         else:
             print("No NEOPIXEL pin found")
-            pixel = PixelStub(1)
+            pixel = pixel_stub(1)
     except Exception as e:
         print("NeoPixel init failed:", e)
-        pixel = PixelStub(1)
+        pixel = pixel_stub(1)
+
+    # LED init
+    try:
+        led = digitalio.DigitalInOut(board.LED)
+        led.direction = digitalio.Direction.OUTPUT
+    except Exception:
+        led = led_stub()
+
+    # Single NeoPixel
+    try:
+        np_pin = getattr(board, "NEOPIXEL", None)
+        if np_pin is not None:
+            pixel = neopixel.NeoPixel(np_pin, 1, brightness=0.01, auto_write=False)
+            print("o Single NeoPixel initialized on", np_pin)
+        else:
+            print("o No NEOPIXEL pin found")
+            pixel = pixel_stub(1)
+    except Exception as e:
+        print("o NeoPixel init failed:", e)
+        pixel = pixel_stub(1)
 
     # FeatherWing 32-LED strip
     try:
@@ -77,16 +97,16 @@ def init_hardware():
                 fw_pin = getattr(board, pin_name)
                 try:
                     pixel32 = neopixel.NeoPixel(fw_pin, 32, brightness=0.04, auto_write=False)
-                    print("FeatherWing initialized on", pin_name)
+                    print("o FeatherWing initialized on", fw_pin)
                     break
                 except Exception:
                     continue
         if fw_pin is None:
-            print("No valid FeatherWing pin found")
-            pixel32 = PixelStub(32)
+            print("o No valid FeatherWing pin found")
+            pixel32 = pixel_stub(32)
     except Exception as e:
-        print("FeatherWing init failed:", e)
-        pixel32 = PixelStub(32)
+        print("o FeatherWing init failed:", e)
+        pixel32 = pixel_stub(32)
 
     # Button
     if have_hardware:
@@ -101,15 +121,15 @@ def init_hardware():
                 button = digitalio.DigitalInOut(button_pin)
                 button.direction = digitalio.Direction.INPUT
                 button.pull = digitalio.Pull.UP
-                print("Button initialized on", button_pin)
+                print("o Button initialized on", button_pin)
             except Exception as e:
-                print("Button init failed:", e)
-                button = ButtonStub()
+                print("o Button init failed:", e)
+                button = button_stub()
         else:
-            print("No button pin found")
-            button = ButtonStub()
+            print("o No button pin found")
+            button = button_stub()
     else:
-        button = ButtonStub()
+        button = button_stub()
 
     # Microphone (optional)
     try:
@@ -124,9 +144,9 @@ def init_hardware():
             buffer_size=4096,
             peripheral=False,
         )
-        print("Microphone initialized")
+        print("o Microphone initialized")
     except Exception as e:
-        print("Microphone init failed:", e)
+        print("o Microphone init failed:", e)
         mic = None
 
     return led, button, pixel, pixel32, mic

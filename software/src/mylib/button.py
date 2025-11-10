@@ -2,7 +2,7 @@
 import time
 import math
 
-class ButtonHandler:
+class button_handler:
     # Press duration thresholds (seconds)
     SHORT_MAX = 0.5
     MEDIUM_MAX = 1.5

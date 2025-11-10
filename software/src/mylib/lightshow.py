@@ -1,7 +1,7 @@
 # Animation patterns and utilities
 import time
 
-class LightShow:
+class light_show:
     def __init__(self, led, pixel, pixel32):
         self.led = led
         self.pixel = pixel
