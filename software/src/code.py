@@ -22,14 +22,16 @@ def main():
     print("- Long press: turn off/on")
     
     while True:
-        # Update animation
-        show.animate_step()
+        # Update button handler (interrupt-driven) - check this first
+        handler.update()
         
-        # Check for button presses
-        handler.check_press()
+        # Only update animation if button feedback is not being shown
+        # This prevents the animation from overlaying the button press feedback
+        if not handler.is_showing_feedback():
+            show.animate_step() # Animate Step
         
-        # Keep CPU friendly
-        time.sleep(0.01)
+        # Keep CPU friendly - shorter sleep for more responsive button handling
+        time.sleep(0.001)  # 1ms for faster interrupt-like response
 
 if __name__ == "__main__":
     main()

@@ -9,34 +9,35 @@ class light_show:
         
         # French flag colors (blue, white, red)
         self.sets = [
-            [(0, 0, 255), (255, 255, 255), (255, 0, 0)],      # Set 0 - France (blue, white, red)
-            [(255, 255, 255), (0, 0, 255), (255, 0, 0), (255, 200, 0)],  # Set 1 - Philippines (white, blue, red, yellow)
-            [(255, 0, 0), (255, 255, 255), (255, 0, 0)],      # Set 2 - Canada (red, white, red)
-            [(0, 0, 255), (255, 0, 0), (255, 255, 255)],      # Set 3 - USA (blue, red, white)
+            [(0, 0, 255), (128, 128, 128), (255, 0, 0)],      # Set 0 - France (blue, white, red)
+            [(128, 128, 128), (0, 0, 255), (255, 0, 0), (255, 200, 0)],  # Set 1 - Philippines (white, blue, red, yellow)
+            [(255, 0, 0), (128, 128, 128), (255, 0, 0)],      # Set 2 - Canada (red, white, red)
+            [(0, 0, 255), (255, 0, 0), (128, 128, 128)],      # Set 3 - USA (blue, red, white)
             [(0, 51, 153), (255, 255, 0), (0, 51, 153)]       # Set 4 - EU (blue, yellow, blue)
         ]
         
         # Brightness settings for mode 3
         self.brightness_levels = [
-            0.04,  # Set 0: Ultra low brightness (4%)
-            0.12,  # Set 1: Very low brightness (12%)
-            0.25,  # Set 2: Low brightness (25%)
-            0.50,  # Set 3: Medium brightness (50%)
-            0.75,  # Set 4: High brightness (75%)
-            1.00   # Set 5: Full brightness (100%)
+            0.02,  # Set 0: 2%
+            0.05,  # Set 1: 5%
+            0.10,  # Set 2: 10%
+            0.25,  # Set 3: 25%
+            0.50,  # Set 4: 50%
+            0.75,  # Set 5: 75%
+            1.00   # Set 6: 100%
         ]
-        self.current_brightness = 0.25  # Start at low brightness
+        self.current_brightness = 0.10  # Start at 10%
         
         # State
         self.mode = 0  # 0=cycle, 1=solid, 2=gradient, 3=settings
         self.mode_count = 4  # Added settings mode
-        self.mode_sets = [0] * self.mode_count  # Remember set for each mode
+        self.mode_sets = [0, 0, 0, 2]  # Remember set for each mode (brightness mode starts at 2 = 10%)
         # Number of sets available in each mode
         self.sets_per_mode = [
             5,  # Mode 0 (flags): 5 sets (0-4)
             5,  # Mode 1 (explosion): 5 sets (0-4)
             5,  # Mode 2 (gradient): 5 sets (0-4)
-            6   # Mode 3 (settings): 6 brightness levels (0-5)
+            7   # Mode 3 (settings): 7 brightness levels (0-6)
         ]
         self.set_idx = 0
         self.active = True
@@ -146,8 +147,6 @@ class light_show:
         16 17 18 19 20 21 22 23
         24 25 26 27 28 29 30 31
         """
-        print(f"show_number: input number = {number}")
-        
         # Define patterns for a 4×8 grid (4 rows × 8 columns)
         patterns = [
             # Mode 0 (flags) - "m0"
@@ -182,15 +181,12 @@ class light_show:
 
         # Ensure number is in valid range
         number = max(0, min(len(patterns) - 1, number))  # Clamp to valid index
-        pattern = patterns[number]
         
         # Ensure number is valid
         if number < 0 or number >= len(patterns):
-            print(f"Invalid number {number}, patterns length = {len(patterns)}")
             return
             
         pattern = patterns[number]
-        print(f"Pattern length = {len(pattern)}")
         
         # Clear display
         self.pixel32.fill((0, 0, 0))
@@ -203,8 +199,6 @@ class light_show:
             for col in range(8):  # 8 columns per row
                 pattern_idx = row * 8 + col  # Index into the pattern array
                 pixel_idx = pattern_idx  # Direct mapping - pattern matches LED layout
-                
-                print(f"r{row} c{col}: pattern[{pattern_idx}] -> pixel[{pixel_idx}]")
                 
                 if pattern[pattern_idx]:
                     self.pixel32[pixel_idx] = color
@@ -234,14 +228,14 @@ class light_show:
             
             if self.set_idx == 0:  # France - vertical stripes
                 for row in range(4):
-                    # Left stripe (blue) - 3 pixels
-                    for col in range(3):
+                    # Left stripe (blue) - 2 pixels
+                    for col in range(2):
                         self.pixel32[row * 8 + col] = palette[0]
-                    # Middle stripe (white) - 2 pixels
-                    for col in range(3, 5):
+                    # Middle stripe (white) - 4 pixels
+                    for col in range(2, 6):
                         self.pixel32[row * 8 + col] = palette[1]
-                    # Right stripe (red) - 3 pixels
-                    for col in range(5, 8):
+                    # Right stripe (red) - 2 pixels
+                    for col in range(6, 8):
                         self.pixel32[row * 8 + col] = palette[2]
 
             elif self.set_idx == 1:  # Philippines - white triangle pointing right, blue top, red bottom
@@ -352,16 +346,16 @@ class light_show:
             
             # Use colors based on current set with transitions
             if self.set_idx == 0:  # France
-                colors = [(0, 0, 255), (255, 255, 255), (255, 0, 0)]
-                sparks = [(192, 192, 255), (255, 255, 255), (255, 192, 192)]
+                colors = [(0, 0, 255), (128, 128, 128), (255, 0, 0)]
+                sparks = [(192, 192, 255), (128, 128, 128), (255, 192, 192)]
             elif self.set_idx == 1:  # Philippines
-                colors = [(255, 255, 255), (0, 0, 255), (255, 0, 0), (255, 200, 0)]
+                colors = [(128, 128, 128), (0, 0, 255), (255, 0, 0), (255, 200, 0)]
                 sparks = [(255, 255, 220), (192, 192, 255), (255, 192, 192), (255, 220, 160)]
             elif self.set_idx == 2:  # Canada
-                colors = [(255, 0, 0), (255, 255, 255)]
+                colors = [(255, 0, 0), (128, 128, 128)]
                 sparks = [(255, 160, 160), (255, 255, 220)]
             elif self.set_idx == 3:  # USA
-                colors = [(0, 0, 255), (255, 0, 0), (255, 255, 255)]
+                colors = [(0, 0, 255), (255, 0, 0), (128, 128, 128)]
                 sparks = [(160, 160, 255), (255, 160, 160), (255, 255, 220)]
             else:  # EU
                 colors = [(0, 51, 153), (255, 255, 0)]
@@ -561,9 +555,11 @@ class light_show:
                 self.current_brightness = new_brightness
                 self.pixel32.brightness = self.current_brightness
             
-            # Show brightness bar
+            # Show brightness bar with custom pixel mapping
             self.pixel32.fill((0, 0, 0))
-            bar_length = int(32 * self.current_brightness)
+            # Map brightness levels to number of pixels: 2%=2px, 5%=3px, etc.
+            brightness_pixels = [1, 2, 4, 8, 16, 24, 32]  # Pixels for each brightness level (0-6)
+            bar_length = brightness_pixels[self.set_idx]
             for i in range(bar_length):
                 self.pixel32[i] = (64, 64, 64)  # Dim white for brightness indicator
             self.pixel32.show()
